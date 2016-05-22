@@ -1,0 +1,12 @@
+# vim: ts=4 st=4 sr noet smartindent syntax=make ft=make:
+# AMI_SOURCE_*: used to determine source ami.
+#               defaults to latest stable from EurostarDigital (any branch)
+#
+# NOTE: ... to rebuild using same version of tools, we can't trust the git tag
+# but the branch, sha and repo, because git tags are mutable and movable.
+export BUILD_GIT_TAG?=
+export EUROSTAR_SERVICE_NAME?=
+export EUROSTAR_SERVICE_ROLE?=
+export EUROSTAR_RELEASE_VERSION?=$(BUILD_ID)
+export METRICS_REMOTE_HOST?=
+export METRICS_REMOTE_PORT?=

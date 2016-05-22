@@ -1,0 +1,48 @@
+# vim: ts=4 st=4 sr noet smartindent syntax=make ft=make:
+
+# ... check_defined: validate MANDATORY_VARS are defined: called by check_vars
+check_defined = $(foreach 1,$1,$(__failures))
+__failures = $(if $(value $1),, $(error You must pass env_var $1 to Makefile))
+
+.PHONY: help
+help: ## Run to show available make targets and descriptions
+	@echo $(failures)
+	@echo [INFO] Packer - Available make targets and descriptions
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST)            \
+		| sort                                                     \
+		| awk 'BEGIN {FS = ":.*?## "};{printf "\033[36m%-15s\033[0m %s\n", $$1, $$2}';
+
+.PHONY: show_env
+show_env: ## show me my environment
+	@echo [INFO] EXPORTED ENVIRONMENT - AVAILABLE TO ALL TARGETS
+	@env | sort | uniq
+
+.PHONY: check_vars
+check_vars: ## checks mandatory vars are in make's env or fails
+	$(call check_defined, $(MANDATORY_VARS))
+	@echo "All mandatory vars are defined:"
+	@echo "$(MANDATORY_VARS)"
+
+.PHONY: sshkeyfile
+sshkeyfile: ## Symlink local sshkey to directory to use in Packer
+	@if [ -f ./$(SSH_PRIVATE_KEY_FILE) ];                                            \
+		then echo "[INFO] Found sshkey: ./$(SSH_PRIVATE_KEY_FILE)";                  \
+	elif [ -f ~/.ssh/$(SSH_PRIVATE_KEY_FILE) ];                                      \
+	then                                                                             \
+		echo "[INFO] Found sshkey creating symlink: ~/.ssh/$(SSH_PRIVATE_KEY_FILE)"; \
+		ln -sf ~/.ssh/$(SSH_PRIVATE_KEY_FILE) ./$(SSH_PRIVATE_KEY_FILE);             \
+	else                                                                             \
+		echo -e "\033[0;31m[ERROR] Create a copy of sshkey in current directory"     \
+		echo -e "(or symlink): e.g ./$(SSH_PRIVATE_KEY_FILE)\e[0m\n";                \
+		exit 1;                                                                      \
+	fi;
+
+.PHONY: validate
+validate: check_vars sshkeyfile ## Run packer validate using defined variables
+	@PACKER_LOG=$(PACKER_LOG) packer validate "$(PACKER_JSON)"
+
+# TODO: on successful build, share the AMI with the AWS Prod account?
+.PHONY: build
+build: validate ## run packer validate then build
+	@PACKER_LOG=$(PACKER_LOG) packer build $(PACKER_DEBUG) "$(PACKER_JSON)"
+

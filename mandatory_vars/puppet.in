@@ -1,0 +1,10 @@
+# vim: ts=4 st=4 sr noet smartindent syntax=make ft=make:
+MANDATORY_VARS+=       \
+	ROLE               \
+	PUPPET_ROLE        \
+	PUPPET_REPO        \
+	PUPPET_BRANCH      \
+	PUPPET_DIR         \
+	PUPPET_ENVIRONMENT \
+	PUPPET_SERVICE     \
+	PUPPET_PRODUCT

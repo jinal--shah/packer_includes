@@ -1,0 +1,37 @@
+# vim: ts=4 st=4 sr noet smartindent syntax=make ft=make:
+#
+# ### MANDATORY_VARS
+# put any custom overrides or additions in current project in mandatory_vars.in
+CUSTOM_FILE=mandatory_vars.in
+include packer_includes/mandatory_vars/aws_build.in
+include packer_includes/mandatory_vars/packer.in
+include packer_includes/mandatory_vars/product.in
+include packer_includes/mandatory_vars/puppet.in
+include packer_includes/custom_file.in
+
+# ### CONSTANTS (not user-defineable)
+# put any custom overrides or additions in current project in constants.in
+CUSTOM_FILE=constants.in
+include packer_includes/constants/aws_build.in
+include packer_includes/custom_file.in
+
+# ### USER_VARS (user-defineable)
+# put any custom overrides or additions in current project in user_vars.in
+CUSTOM_FILE=user_vars.in
+include packer_includes/user_vars/aws_build.in
+include packer_includes/user_vars/product.in
+include packer_includes/user_vars/packer.in
+include packer_includes/user_vars/puppet.in
+include packer_includes/custom_file.in
+
+# ### GENERATED VARS: determined by make based on other values.
+# put any custom overrides or additions in current project in generated_vars.in
+CUSTOM_FILE=generated_vars.in
+include packer_includes/generated_vars/build.in
+# ... ami.in requires build.in
+include packer_includes/generated_vars/ami.in
+# ... product.in requires ami.in
+include packer_includes/generated_vars/product.in
+include packer_includes/custom_file.in
+
+include packer_includes/recipes/common.in
