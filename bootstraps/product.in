@@ -35,5 +35,5 @@ include packer_includes/custom_file.in
 
 # ### RECIPES ...
 CUSTOM_FILE=recipes.in
-include packer_includes/recipes/common.in
+include packer_includes/recipes/product.in
 include packer_includes/custom_file.in
