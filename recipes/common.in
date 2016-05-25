@@ -1,27 +1,42 @@
 # vim: ts=4 st=4 sr noet smartindent syntax=make ft=make:
 
-# ... check_defined: validate MANDATORY_VARS are defined: called by check_vars
-check_defined = $(foreach 1,$1,$(__failures))
-__failures = $(if $(value $1),, $(error You must pass env_var $1 to Makefile))
-
 .PHONY: help
 help: ## Run to show available make targets and descriptions
-	@echo $(failures)
-	@echo [INFO] Packer - Available make targets and descriptions
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST)            \
-		| sort                                                     \
-		| awk 'BEGIN {FS = ":.*?## "};{printf "\033[36m%-15s\033[0m %s\n", $$1, $$2}';
+	@echo -e "\033[1;37m[INFO] Packer - Available targets\033[0m"
+	@grep -E '^[-a-zA-Z_: ]+:.*?## .*' $(MAKEFILE_LIST)             \
+	| sed -e "s/^\([^:]\+\):\([^:]\+\):\([^#]*\)##\(.*\)/\1 \2 \4/" \
+	| awk '{ \
+		printf "\033[36m[%-30s]\033[0m \033[1;36m%-15s\033[0m ", \
+			$$1, $$2; $$1=$$2=""; \
+		print $$0; \
+	}';
 
 .PHONY: show_env
 show_env: ## show me my environment
-	@echo [INFO] EXPORTED ENVIRONMENT - AVAILABLE TO ALL TARGETS
+	@echo -e "\033[1;37m[INFO] EXPORTED ENVIRONMENT - AVAILABLE TO ALL TARGETS\033[0m"
 	@env | sort | uniq
+
+.PHONY: mandatory_vars
+mandatory_vars: ## list all vars considered necessary to run build.
+	@echo -e "\033[1;37m[INFO] MANDATORY ENV VARS\033[0m"
+	@echo -e "\033[36m$(MANDATORY_VARS)\033[0m" | sed -e "s/ /\n/"g
 
 .PHONY: check_vars
 check_vars: ## checks mandatory vars are in make's env or fails
-	$(call check_defined, $(MANDATORY_VARS))
-	@echo "All mandatory vars are defined:"
-	@echo "$(MANDATORY_VARS)"
+	$(foreach A, $(MANDATORY_VARS), \
+		$(if $(value $A),, $(error You must pass env var $A to make)) \
+	)
+
+.PHONY: print_vars
+print_vars: ## show assigned values and src of all env_vars e.g. file or environment
+	@$(foreach V,                                           \
+		$(sort $(.VARIABLES)),                              \
+		$(if                                                \
+			$(filter-out default automatic, $(origin $V)),  \
+			$(info $V=$($V) ($(value $V)): $(origin $V)) \
+		)                                                   \
+	)
+	@echo -e "\033[1;37mOUTPUT: VAR=VALUE (value's str or code-snippet): source\033]0m"
 
 .PHONY: sshkeyfile
 sshkeyfile: ## Symlink local sshkey to directory to use in Packer
@@ -39,6 +54,7 @@ sshkeyfile: ## Symlink local sshkey to directory to use in Packer
 
 .PHONY: validate
 validate: check_vars sshkeyfile ## Run packer validate using defined variables
+	@echo -e "\033[1;37mValidating Packer json: $(PACKER_JSON) \033]0m"
 	@PACKER_LOG=$(PACKER_LOG) packer validate "$(PACKER_JSON)"
 
 # TODO: on successful build, share the AMI with the AWS Prod account?

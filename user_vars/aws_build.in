@@ -1,8 +1,0 @@
-# vim: ts=4 st=4 sr noet smartindent syntax=make:
-AMI_SOURCE_GIT_ORG?=EurostarDigital
-AMI_SOURCE_GIT_BRANCH?=*
-AMI_SOURCE_CHANNEL?=stable
-export AWS_ACCESS_KEY_ID?=
-export AWS_INSTANCE_TYPE?=t2.small
-export AWS_REGION?=eu-west-1
-export AWS_SECRET_ACCESS_KEY?=
