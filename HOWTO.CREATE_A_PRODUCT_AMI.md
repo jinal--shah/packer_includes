@@ -104,7 +104,12 @@ The product.default.json file might be enough ...
 
 If not, create your own called packer.json in  api\_gateway/packer/proxy/
 
-## 7. Make
+## 7. Environment Variables for Make
+
+Everything that the Make file is about (other than validations and prereqs)
+is to make sure packer is passed the correct environment variables.
+
+Read ./bootstraps/README.product.md to see what is required.
 
 So what are you waiting for? Build it!
 
