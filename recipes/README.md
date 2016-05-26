@@ -30,14 +30,22 @@ The build recipe should always call these other targets:
 * build
 
 e.g.
+        .PHONY: prereqs
+        prereqs: sshkeyfile puppet_librarian;
+
+        .PHONY: validate
+        validate: check_vars check_aws_access
+            @packer validate $(PACKER_JSON)
 
         .PHONY: build
         build: prereqs validate ## do stuff
             PACKER_LOG=$(PACKER_LOG) packer build $(PACKER_DEBUG) $(PACKER_JSON)
 
-        .PHONY: prereqs
-        prereqs: sshkeyfile puppet_librarian;
+# product.in
 
-        .PHONY: validate
-        prereqs: check_vars check_aws_access
-            @packer validate $(PACKER_JSON)
+Contains the basic recipes used to packerise an app.
+
+This one does not presuppose any reliance on running puppet or ansible, so don't expect
+any puppet-librarian commands or anything.
+
+Check out microservice\_puppet.in if you want something like that.
