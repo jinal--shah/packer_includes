@@ -2,7 +2,6 @@
 export PUPPET_ROLE?=
 export PUPPET_REPO?=git@github.com:ivangutev/eif_puppet.git
 export PUPPET_BRANCH?=master
-export PUPPET_DIR?=puppet
 export PUPPET_ENVIRONMENT?=integration
 export PUPPET_SERVICE?=enovation
 export PUPPET_PRODUCT?=enovation
