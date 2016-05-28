@@ -48,16 +48,17 @@ That config file will be modified by a user-data script
 
         cd api_gateway/packer/proxy
         git clone git@github.com:jinal--shah/packer_includes.git # assumes ssh access to repo
+        git checkout refs/tags/1.0.0
 
 
 ## 3. Makefile
 
-In this case we can merely include packer_includes/bootstraps/product.in - this declares
+In this case we can merely include packer_includes/make/bootstraps/product.mak - this declares
 all default eurostar and aws environment vars required to build. It also includes all
 of the `make` recipes we want.
 
         # api_gateway/packer/proxy/Makefile
-        include packer_includes/bootstraps/product.in
+        include packer_includes/make/bootstraps/product.mak
 
 ## 4. Build scripts and app config
 

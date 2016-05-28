@@ -8,7 +8,7 @@
 
 ## layout
 
-        .
+        ./make
         ├── README.md       # ... you're reading this
         │
         ├── bootstraps
@@ -17,7 +17,7 @@
         ├── constants
         │   └── ...         # ... env vars with a fixed value (so, no, not really vars)
         │
-        ├── custom_file.in  # ... template you can call to include a snippet from your
+        ├── custom_file.mak  # ... template you can call to include a snippet from your
         │                         project dir
         ├── generated_vars
         │   └── ...         # ... vars whose values are generated during compilation
@@ -33,7 +33,7 @@
         │                         or your own from, yep, you guessed it, your project dir.
         ├── role_vars
         │   └── ...         # ... files of vars that can be included if the filename
-        │                         matches role_vars/$ROLE.in. See bootstraps/product.in
+        │                         matches role_vars/$ROLE.mak. See bootstraps/product.mak
         │                         for an example use-case.
         └── user_vars       # ... files of env vars that can be user-defined (passed to `make`)
             └── ...

@@ -8,9 +8,9 @@
 
 * AWS\_ACCESS\_KEY\_ID: must be passed to `make`
 
-* AWS\_INSTANCE\_TYPE: user-definable. See default under user_vars/product.in
+* AWS\_INSTANCE\_TYPE: user-definable. See default under user_vars/product.mak
 
-* AWS\_REGION: user-definable. See default under user_vars/product.in
+* AWS\_REGION: user-definable. See default under user_vars/product.mak
 
 * AWS\_SECRET\_ACCESS\_KEY:  must be passed to `make`
 

@@ -9,7 +9,7 @@ Such recipes will provide the user some customised debug / info without actually
 validating or building.
 
 e.g. help, show_env, mandatory_vars, print_vars are examples of these in the
-product.in
+product.mak
 
 ## prereqs
 
@@ -19,7 +19,7 @@ e.g the sshkeyfile target provides an example of such a recipe.
 
 ## validation
 
-Targets like check_vars or validate in product.in
+Targets like check_vars or validate in product.mak
 
 ## building
 
@@ -41,11 +41,11 @@ e.g.
         build: prereqs validate ## do stuff
             PACKER_LOG=$(PACKER_LOG) packer build $(PACKER_DEBUG) $(PACKER_JSON)
 
-# product.in
+# product.mak
 
 Contains the basic recipes used to packerise an app.
 
 This one does not presuppose any reliance on running puppet or ansible, so don't expect
 any puppet-librarian commands or anything.
 
-Check out microservice\_puppet.in if you want something like that.
+Check out microservice\_puppet.mak if you want something like that.
