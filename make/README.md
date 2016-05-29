@@ -24,7 +24,7 @@
         │
         ├── json
         │   └── ...         # ... common packer json - pick the one that suits you
-        │                         or use your own from your project dir.
+        │                         or use one from your project dir.
         ├── mandatory_vars
         │   └── ...         # ... a list of env vars that must be defined before a
         │                         recipe is run. Use this to validate before build.
@@ -32,9 +32,10 @@
         │   └── ...         # ... common groups of recipe. Mix and match: include these
         │                         or your own from, yep, you guessed it, your project dir.
         ├── role_vars
-        │   └── ...         # ... files of vars that can be included if the filename
-        │                         matches role_vars/$ROLE.mak. See bootstraps/product.mak
-        │                         for an example use-case.
+        │   └── ...         # ... files of vars appropriate to a EUROSTAR_SERVICE_ROLE
+        │                         e.g. gateway | appsvr | frontend
+        │                         See bootstraps/product.mak for an example use-case.
+        │
         └── user_vars       # ... files of env vars that can be user-defined (passed to `make`)
             └── ...
 
