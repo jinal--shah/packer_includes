@@ -55,14 +55,31 @@
 
   "provisioners": [
     {
-      "type": "file",
-      "source": "uploads",
-      "destination": "/tmp"
+      "type": "shell",
+      "inline": [
+        "# THINGS TO DO FIRST OF ALL: create tmp dirs on remote",
+        "sudo mkdir /tmp/{uploads,scripts}"
+      ]
     },
     {
       "type": "file",
-      "source": "scripts",
-      "destination": "/tmp"
+      "source": "packer_includes/uploads/product/",
+      "destination": "/tmp/uploads"
+    },
+    {
+      "type": "file",
+      "source": "packer_includes/scripts/product/",
+      "destination": "/tmp/scripts"
+    },
+    {
+      "type": "file",
+      "source": "uploads/",
+      "destination": "/tmp/uploads"
+    },
+    {
+      "type": "file",
+      "source": "scripts/",
+      "destination": "/tmp/scripts"
     },
     {
       "type": "shell",
