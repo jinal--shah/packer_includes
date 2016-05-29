@@ -1,10 +1,13 @@
 # vim: ts=4 st=4 sr noet smartindent syntax=make ft=make:
 export MANDATORY_VARS+=      \
 	AMI_NAME                 \
+	AMI_PREFIX               \
+	AMI_SOURCE_PREFIX        \
 	AWS_ACCESS_KEY_ID        \
 	AWS_INSTANCE_TYPE        \
 	AWS_REGION               \
 	AWS_SECRET_ACCESS_KEY    \
+	AMI_PREVIOUS_SOURCES     \
 	AMI_SOURCE_ID            \
 	BUILD_GIT_BRANCH         \
 	BUILD_GIT_ORG            \

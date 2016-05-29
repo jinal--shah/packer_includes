@@ -16,39 +16,64 @@ export PACKER_JSON
 #
 # ... to rebuild using same version of tools, we can't trust the git tag
 # but the branch, sha and repo, because git tags are mutable and movable.
-export BUILD_GIT_BRANCH=$(shell git describe --contains --all HEAD)
-export BUILD_GIT_SHA=$(shell git rev-parse --short=$(GIT_SHA_LEN) --verify HEAD)
-export BUILD_GIT_REPO=$(shell   \
-	git remote show -n origin   \
-	| grep '^ *Push *'          \
-	| awk {'print $$NF'}        \
+export BUILD_GIT_TAG:=$(shell git describe --exact-match HEAD 2>/dev/null)
+ifeq ($(BUILD_GIT_TAG),)
+	export BUILD_GIT_BRANCH:=$(shell git describe --contains --all HEAD)
+else
+	export BUILD_GIT_BRANCH:=detached_head
+endif
+export BUILD_GIT_SHA:=$(shell git rev-parse --short=$(GIT_SHA_LEN) --verify HEAD)
+export BUILD_GIT_REPO:=$(shell \
+	git remote show -n origin  \
+	| grep '^ *Push *'         \
+	| awk {'print $$NF'}       \
 )
-export BUILD_GIT_ORG=$(shell \
-	echo $(BUILD_GIT_REPO)   \
+export BUILD_GIT_ORG:=$(shell \
+	echo $(BUILD_GIT_REPO)               \
 	| sed -e 's!.*[:/]\([^/]\+\)/.*!\1!' \
 )
-export BUILD_TIME=$(shell date +%Y%m%d%H%M%S)
+export BUILD_TIME:=$(shell date +%Y%m%d%H%M%S)
+
+AWS_TAG_SOURCE_OS_INFO:=os<$(AMI_SOURCE_OS)>os_release<$(AMI_SOURCE_OS_RELEASE)>
+AWS_TAG_SOURCE_GIT_INFO:=repo<$(AMI_SOURCE_GIT_REPO)>branch<$(AMI_SOURCE_GIT_BRANCH)>
+AWS_TAG_SOURCE_GIT_REF:=tag<$(AMI_SOURCE_GIT_TAG)>sha<$(AMI_SOURCE_GIT_SHA)>
 
 # AMI_SOURCE_ID: ami that this new one builds on, determined by make
 export AMI_SOURCE_ID?=$(shell                                            \
 	aws --cli-read-timeout 10 ec2 describe-images --region $(AWS_REGION) \
-	--filter 'Name=manifest-location,Values=$(AMI_SOURCE_FILTER)'        \
-	--filter 'Name=tag:os,Values=$(AMI_SOURCE_OS)'                       \
-	--filter 'Name=tag:os_release,Values=$(AMI_SOURCE_OS_RELEASE)'       \
-	--filter 'Name=tag:build_git_org,Values=$(AMI_SOURCE_GIT_ORG)'       \
-	--filter 'Name=tag:build_git_branch,Values=$(AMI_SOURCE_GIT_BRANCH)' \
-	--filter 'Name=tag:channel,Values=$(AMI_SOURCE_CHANNEL)'             \
+	--filters 'Name=manifest-location,Values=$(AMI_SOURCE_FILTER)'       \
+	          'Name=tag:os_info,Values=$(AWS_TAG_SOURCE_OS_INFO)'        \
+	          'Name=tag:build_git_info,Values=$(AWS_TAG_SOURCE_GIT_INFO)'\
+	          'Name=tag:build_git_ref,Values=$(AWS_TAG_SOURCE_GIT_REF)'  \
+	          'Name=tag:channel,Values=$(AMI_SOURCE_CHANNEL)'            \
 	--query 'Images[*].[ImageId,CreationDate]'                           \
 	--output text                                                        \
 	| sort -k2 | tail -1 | awk {'print $$1'}                             \
 )
+
+# ... value of source ami's ami_sources tag used as prefix for this ami's sources tag
+#     to show provenance.
+export AMI_PREVIOUS_SOURCES:=$(shell                                     \
+	aws --cli-read-timeout 10 ec2 describe-tags --region $(AWS_REGION)   \
+	--filters 'Name=resource-id,Values=$(AMI_SOURCE_ID)'                 \
+	          'Name=key,Values=ami_sources'                              \
+	--query 'Tags[*].Value'                                              \
+	--output text                                                        \
+)
+
 export AMI_OS=$(AMI_SOURCE_OS)
 export AMI_OS_RELEASE=$(AMI_SOURCE_OS_RELEASE)
 export AMI_OS_INFO=$(AMI_OS)-$(AMI_OS_RELEASE)
-export AMI_NAME_GIT_INFO=$(BUILD_GIT_SHA)-$(BUILD_GIT_BRANCH)
+
 PRODUCT_DETAILS=$(EUROSTAR_SERVICE_NAME)-$(EUROSTAR_SERVICE_ROLE)-$(EUROSTAR_RELEASE_VERSION)
 DESC_TXT=$(EUROSTAR_SERVICE_NAME);$(EUROSTAR_SERVICE_ROLE);$(EUROSTAR_RELEASE_VERSION)
 export AMI_DESCRIPTION=$(AMI_OS_INFO): $(DESC_TXT)
+
 # AMI_NAME : must be unique in AWS account, so we can locate it unambiguously.
-export AMI_NAME=$(AMI_PREFIX)-$(PRODUCT_DETAILS)-$(BUILD_TIME)-$(AMI_NAME_GIT_INFO)
+export AMI_NAME=$(AMI_PREFIX)-$(PRODUCT_DETAILS)-$(BUILD_TIME)
+
+export AWS_TAG_AMI_SOURCES:=$(AMI_PREVIOUS_SOURCES)<$(AMI_SOURCE_PREFIX):$(AMI_SOURCE_ID)>
+export AWS_TAG_BUILD_GIT_INFO:=repo<$(BUILD_GIT_REPO)>branch<$(BUILD_GIT_BRANCH)>
+export AWS_TAG_BUILD_GIT_REF:=tag<$(BUILD_GIT_TAG)>sha<$(BUILD_GIT_SHA)>
+export AWS_TAG_OS_INFO:=$(AWS_TAG_SOURCE_OS_INFO)
 

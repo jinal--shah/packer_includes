@@ -1,1 +1,1 @@
-export PUPPET_DIR=puppet
+export PUPPET_DIR:=puppet
