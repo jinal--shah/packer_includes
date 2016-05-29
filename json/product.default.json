@@ -58,7 +58,7 @@
       "type": "shell",
       "inline": [
         "# THINGS TO DO FIRST OF ALL: create tmp dirs on remote",
-        "sudo mkdir /tmp/{uploads,scripts}"
+        "mkdir /tmp/{uploads,scripts}"
       ]
     },
     {
