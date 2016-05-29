@@ -83,7 +83,7 @@
     },
     {
       "type": "shell",
-      "script": "scripts/run_scripts.sh",
+      "script": "packer_includes/scripts/run_scripts.sh",
       "environment_vars": [
         "AWS_ACCESS_KEY_ID={{user `aws_access_key_id`}}",
         "AWS_SECRET_ACCESS_KEY={{user `aws_secret_access_key`}}",
