@@ -45,7 +45,10 @@
 
 * Append to a var by using the `+=` operator e.g. `MY_VAR += some extra words`
 
-* `make -r` will shave off a few seconds (we don't use the implicit rules at all)
+* `make -r ...` will shave off a few seconds (we don't use the implicit rules at all)
+
+* `make -r --print-data-base` will tell you in which file each var is declared and
+   the source that defined it e.g. environment | default (from file) etc ...
 
 * `make --trace -d <target>` can be very enlightening.
 

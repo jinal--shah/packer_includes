@@ -10,6 +10,7 @@
 # It contains stuff that is useful to determine the name and type of this
 # service amongst other things.
 #
+# TODO: Rename service to 'product' to meet naming convention
 #
 REQUIRED_VARS="
     EUROSTAR_SERVICE_NAME
