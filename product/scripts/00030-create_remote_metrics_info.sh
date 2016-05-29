@@ -1,7 +1,7 @@
 #!/bin/bash
 # vim: et sr sw=4 ts=4 smartindent:
 #
-# create_remote_metrics_info.sh
+# 00030-create_remote_metrics_info.sh
 #
 # Will generate a file under /etc/eurostar/remote_metrics_info
 # This file contains key=value pairs that can be sourced in to a 
@@ -15,6 +15,8 @@ REQUIRED_VARS="
     METRICS_REMOTE_HOST
     METRICS_REMOTE_PORT
 "
+
+mkdir -p /etc/eurostar
 
 INFO_FILE="/etc/eurostar/remote_metrics_info"
 FAILED_VALIDATION=''

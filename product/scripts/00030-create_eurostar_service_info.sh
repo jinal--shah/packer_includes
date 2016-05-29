@@ -18,6 +18,8 @@ REQUIRED_VARS="
     EUROSTAR_RELEASE_VERSION
 "
 
+mkdir -p /etc/eurostar
+
 INFO_FILE="/etc/eurostar/eurostar_service_info"
 FAILED_VALIDATION=''
 TIMESTAMP="$(date +'%Y-%m-%d %H:%M:%S')"

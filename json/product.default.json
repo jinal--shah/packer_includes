@@ -63,23 +63,23 @@
     },
     {
       "type": "file",
-      "source": "packer_includes/uploads/product/",
-      "destination": "/tmp/uploads"
+      "source": "packer_includes/product/uploads",
+      "destination": "/tmp"
     },
     {
       "type": "file",
-      "source": "packer_includes/scripts/product/",
-      "destination": "/tmp/scripts"
+      "source": "packer_includes/product/scripts",
+      "destination": "/tmp"
     },
     {
       "type": "file",
-      "source": "uploads/",
-      "destination": "/tmp/uploads"
+      "source": "uploads",
+      "destination": "/tmp"
     },
     {
       "type": "file",
-      "source": "scripts/",
-      "destination": "/tmp/scripts"
+      "source": "scripts",
+      "destination": "/tmp"
     },
     {
       "type": "shell",
@@ -94,17 +94,6 @@
         "METRICS_REMOTE_PORT={{user `metrics_remote_port`}}"
       ],
       "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E {{ .Path }}"
-    },
-    {
-      "type": "shell",
-      "inline": [
-        "# THINGS TO DO LAST OF ALL ...",
-        "# ... deliver cloud-init scripts and make executable",
-        "sudo cp -r /tmp/uploads/cloud-init/* /",
-        "sudo chmod a+x /usr/local/bin/cloud-init/[0-9][0-9][0-9][0-9][0-9]-*",
-        "# ... delete uploads dir on remote",
-        "sudo rm -rf /tmp/uploads"
-      ]
     }
   ],
 
