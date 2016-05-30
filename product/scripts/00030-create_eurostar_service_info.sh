@@ -18,8 +18,6 @@ REQUIRED_VARS="
     EUROSTAR_RELEASE_VERSION
 "
 
-mkdir -p /etc/eurostar
-
 INFO_FILE="/etc/eurostar/eurostar_service_info"
 FAILED_VALIDATION=''
 TIMESTAMP="$(date +'%Y-%m-%d %H:%M:%S')"
@@ -34,9 +32,13 @@ function check_var_defined() {
         FAILED_VALIDATION="you bet'cha"
         return 1
     fi
+}
 
+function check_valid_val() {
+    var_name="$1"
+    var_val="${!var_name}"
     if [[ $var_val =~ [^_a-zA-Z0-9] ]]; then
-        echo "$0 ERROR: ILLEGAL CHAR in $var_name val: $var_valonly" >&2 
+        echo "$0 ERROR: ILLEGAL CHAR in $var_name val: $var_val" >&2
         echo "$0 ERROR: ... only use alphanumerics or underscore in the value"
         FAILED_VALIDATION="you bet'cha"
         return 1
@@ -50,8 +52,16 @@ function add_to_info_str() {
     OUTPUT_STR="$OUTPUT_STR\n$key_val"
 }
 
+if [[ $EUROSTAR_RELEASE_VERSION =~ \. ]]; then
+    echo "$0 INFO: \$EUROSTAR_RELEASE_VERSION val ${!var_name} contains dots."
+    echo "$0 INFO: ... changing dots to underscores for safe app consumption."
+    # ... check out the crazy bash variable expansion below ... also works in ash
+    EUROSTAR_RELEASE_VERSION=${EUROSTAR_RELEASE_VERSION//\./_}
+fi
+
 for this_var in $REQUIRED_VARS; do
-    check_var_defined $this_var \
+    check_var_defined $this_var  \
+    && check_valid_val $this_var \
     && add_to_info_str $this_var
 done
 
@@ -60,13 +70,13 @@ if [[ ! -z $FAILED_VALIDATION ]]; then
     exit 1
 fi
 
+mkdir -p $(dirname $INFO_FILE) 2>/dev/null
+
 # ... replace any existing values
 if [[ -f $INFO_FILE ]]; then
     sed -i "/$MARKER/,/END $MARKER/d" $INFO_FILE
 fi
 
 OUTPUT_STR="$OUTPUT_STR\n# END $MARKER $0"
-
-mkdir -p $(dirname $INFO_FILE) 2>/dev/null
 echo -e "$OUTPUT_STR\n" >>$INFO_FILE
 
