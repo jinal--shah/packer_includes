@@ -7,11 +7,11 @@ if [[ ! -d $UPLOADS ]]; then
     exit 0
 fi
 
-find $UPLOADS       \
-    -name '*.sh' -o \
-    -name '*.py' -o \
-    -name '*.rb' -o \
-    -name '*.go'    \
+find $UPLOADS \
+    -name  '*.sh' -o \
+    -name '*.py'  -o \
+    -name '*.rb'  -o \
+    -name '*.go'     \
     -exec chmod a+x {} \;
 
 cp -r $UPLOADS/* /
