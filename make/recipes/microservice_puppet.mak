@@ -1,20 +1,6 @@
 # vim: ts=4 st=4 sr noet smartindent syntax=make ft=make:
 
-# clean, prereqs, validate
-.PHONY: clean
-clean: ## delete build assets
-	@rm -rf $(PUPPET_DIR)
-
-.PHONY: prereqs
-prereqs: sshkeyfile get_puppet ## set up build env
-
-.PHONY: validate
-validate: check_vars valid_packer ## check build env is sane
-
-# TODO: on successful build, share the AMI with the AWS Prod account?
-.PHONY: build
-build: prereqs validate ## run prereqs, validate then build.
-	@PACKER_LOG=$(PACKER_LOG) packer build $(PACKER_DEBUG) "$(PACKER_JSON)"
+### ... DEFAULT TARGET: help
 
 .PHONY: help
 help: ## Run to show available make targets and descriptions
@@ -27,9 +13,27 @@ help: ## Run to show available make targets and descriptions
 	    print $$0;                                                  \
 	}';
 
+# ... CLEAN, PREREQS, VALIDATE, BUILD TARGETS
+
+.PHONY: clean
+clean: ## delete build assets
+	@rm -rf $(PUPPET_DIR)
+
+.PHONY: prereqs
+prereqs: sshkeyfile get_puppet ## set up build env
+
+.PHONY: validate
+validate: check_vars check_includes valid_packer ## check build env is sane
+
+.PHONY: build
+build: prereqs validate ## run prereqs, validate then build.
+	@PACKER_LOG=$(PACKER_LOG) packer build $(PACKER_DEBUG) "$(PACKER_JSON)"
+
+# ... INTROSPECTION TARGETS 
+
 .PHONY: show_env
 show_env: ## show me my environment
-	@echo -e "\033[1;37m[INFO] EXPORTED ENVIRONMENT - AVAILABLE TO ALL TARGETS\033[0m"
+	@echo -e "\033[1;37mEXPORTED ENVIRONMENT - AVAILABLE TO ALL TARGETS\033[0m"
 	@env | sort | uniq
 
 .PHONY: mandatory_vars
@@ -52,8 +56,10 @@ print_vars: ## show assigned values and src of all env_vars e.g. file or environ
 	        $(info $V=$($V) ($(value $V)): $(origin $V))    \
 	    )                                                   \
 	)
-	@echo -e "\033[1;37mOUTPUT: VAR=VALUE (value's str or code-snippet): source\033]0m"
-	@echo -e "\033[1;37mRun 'make -r --print-data-base' for even more debug info.\033]0m"
+	@echo -e "\033[1;37mOUTPUT: VAR=VALUE (value's str or code-snippet): source\033[0m"
+	@echo -e "\033[1;37mRun 'make -r --print-data-base' for even more debug info.\033[0m"
+
+# ... PREREQS TARGETS
 
 .PHONY: sshkeyfile
 sshkeyfile: ## Symlink local sshkey to directory to use in Packer
@@ -69,24 +75,40 @@ sshkeyfile: ## Symlink local sshkey to directory to use in Packer
 	    exit 1;                                                               \
 	fi;
 
+PUPDIR=$(PUPPET_DIR)
+PUPGB=$(PUPPET_BRANCH)
+PUPGR=$(PUPPET_REPO)
+PUPGT=$(PUPPET_GIT_TAG)
 .PHONY: get_puppet
 get_puppet: ## fetch puppet modules and run puppet librarian
-	@if [[ ! -e $(PUPPET_DIR) ]]; then                                             \
-	    echo "\033[1;37$(PUPPET_DIR) does not exist - fetching.\033]0m"            \
-	    && git clone --branch $(PUPPET_BRANCH) $(PUPPET_REPO) $(PUPPET_DIR)        \
-	    && cd $(PUPPET_DIR)                                                        \
-	    && [[ -z "$(PUPPET_GIT_TAG)" ]]                                            \
-	    || echo "checking out tag $(PUPPET_GIT_TAG) on $(PUPPET_BRANCH)"           \
-	    && git checkout $(PUPPET_GIT_TAG);                                         \
-	else                                                                           \
-	    echo "\033[1;37... $(PUPPET_DIR) already exists. Not fetching.\033]0m"     \
-	    echo "\033[1;37Run 'make clean' if you really want to start fresh.\033]0m" \
+	@if [[ ! -e $(PUPDIR) ]]; then                                   \
+	    echo -e "\033[1;37$(PUPDIR) doesn't exist - cloning.\033[0m" \
+	    && git clone --branch $(PUPGB) $(PUPGR) $(PUPDIR)            \
+	    && cd $(PUPDIR)                                              \
+	    && [[ -z "$(PUPGT)" ]]                                       \
+	    || echo -e "\033[1;37checking out tag $(PUPGT)\033[0m"       \
+	    && git checkout $(PUPGT);                                    \
+	else                                                             \
+	    echo -e "\033[1;37... $(PUPDIR) already exists.\033[0m"      \
+	    echo -e "\033[1;37Run 'make clean' to start fresh.\033[0m"   \
 	fi;
-	@echo "\033[1;37Running librarian puppet on Puppetfile in $(PUPPET_DIR)\033]0m" \
+	@echo "\033[1;37Running librarian-puppet in $(PUPDIR)\033[0m" \
 	&& cd $(PUPPET_DIR) && librarian-puppet install;
+
+# ... VALIDATION TARGETS
 
 .PHONY: valid_packer
 valid_packer: ## run packer validate on packer json
-	@echo -e "\033[1;37mValidating Packer json: $(PACKER_JSON)\033]0m"
+	@echo -e "\033[1;37mValidating Packer json: $(PACKER_JSON)\033[0m"
 	@PACKER_LOG=$(PACKER_LOG) packer validate "$(PACKER_JSON)"
+
+PIGT=$(PACKER_INCLUDES_GIT_TAG)
+.PHONY: check_includes
+check_includes: ## check we use the desired packer_includes version
+	@[[ -z "$(PIGT)" ]]                                                     \
+	|| echo -e "\033[1;37mChecking packer_includes version: $(PIGT)\033[0m" \
+	&& [[ -d packer_includes ]]                                             \
+	&& cd packer_includes                                                   \
+	&& [[ $$(git describe --tags) == "$(PIGT)" ]]                           \
+	&& echo "... using version: $(PIGT)"
 

@@ -23,3 +23,4 @@ export PACKER?=$(shell which packer)
 export PACKER_DEBUG?=
 export PACKER_LOG?=
 export PACKER_DIR?=./
+export PACKER_INCLUDES_GIT_TAG?=
