@@ -4,7 +4,7 @@
 
 .PHONY: help
 help: ## Run to show available make targets and descriptions
-	@echo -e "\033[1;37m[INFO] Packer - Available targets\033[0m"
+	@echo -e "\033[1;37mAvailable targets\033[0m"
 	@grep -E '^[-a-zA-Z_: ]+:.*?## .*' $(MAKEFILE_LIST)             \
 	| sed -e "s/^\([^:]\+\):\([^:]\+\):\([^#]*\)##\(.*\)/\1 \2 \4/" \
 	| awk '{                                                        \
@@ -38,7 +38,7 @@ show_env: ## show me my environment
 
 .PHONY: mandatory_vars
 mandatory_vars: ## list all vars considered necessary to run build.
-	@echo -e "\033[1;37m[INFO] MANDATORY ENV VARS\033[0m"
+	@echo -e "\033[1;37mMANDATORY ENV VARS\033[0m"
 	@echo -e "\033[36m$(MANDATORY_VARS)\033[0m" | sed -e "s/ /\n/"g
 
 .PHONY: check_vars
