@@ -28,9 +28,20 @@ export PACKER_JSON
 #
 # ... to rebuild using same version of tools, we can't trust the git tag
 # but the branch, sha and repo, because git tags are mutable and movable.
-export BUILD_GIT_TAG:=$(shell git describe --exact-match HEAD 2>/dev/null)
+# We expect the version tag to fit the x.y.z semver format
+export BUILD_GIT_TAG:=$(shell \
+	git describe                 \
+	--exact-match HEAD           \
+	--match [0-9]*.[0-9]*.[0-9]* \
+	2>/dev/null                  \
+)
 ifeq ($(BUILD_GIT_TAG),)
-	export BUILD_GIT_BRANCH:=$(shell git describe --contains --all HEAD)
+	export BUILD_GIT_BRANCH:=$(shell \
+	    git describe                 \
+	    --contains --all             \
+	    --match [0-9]*.[0-9]*.[0-9]* \
+	    HEAD
+	)
 else
 	export EUROSTAR_RELEASE_VERSION:=$(BUILD_GIT_TAG)
 	export BUILD_GIT_BRANCH:=detached_head
