@@ -66,16 +66,19 @@ valid_packer: ## run packer validate on packer json
 	@echo -e "\033[1;37mValidating Packer json: $(PACKER_JSON)\033[0m"
 	@PACKER_LOG=$(PACKER_LOG) packer validate "$(PACKER_JSON)"
 
-PIGT:=$(PACKER_INCLUDES_GIT_TAG)
+PIGT:=$(strip $(PACKER_INCLUDES_GIT_TAG))
 PIDIR:=$(CURDIR)/packer_includes
 .PHONY: check_includes
 check_includes: ## check we use the desired packer_includes version
-	@[[ -z "$(PIGT)" ]]                                              \
-	|| echo -e "\033[1;37mChecking $(PIDIR) version: $(PIGT)\033[0m" \
-	&& [[ -d $(PIDIR) ]]                                             \
-	&& cd $(PIDIR)                                                   \
-	&& [[ $$(git describe --tags) == "$(PIGT)" ]]                    \
-	&& echo "... using version: $(PIGT)"
+	@if [[ -z "$(PIGT)" ]]; then                                       \
+	    echo "... packer_includes git tag not given. Skipping check";  \
+	else                                                               \
+	    echo -e "\033[1;37mChecking $(PIDIR) version: $(PIGT)\033[0m"; \
+	    [[ -d $(PIDIR) ]]                                              \
+	    && cd $(PIDIR)                                                 \
+	    && [[ $$(git describe --tags) == "$(PIGT)" ]]                  \
+	    && echo "... using version: $(PIGT)";                          \
+	fi
 
 # Local uncommitted changes to a repo mess up the audit trail
 # as the the commit ref or tag will not represent the state of 
