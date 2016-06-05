@@ -1,0 +1,148 @@
+{
+  "variables": {
+    "ami_description": "{{env `AMI_DESCRIPTION`}}",
+    "ami_name": "{{env `AMI_NAME`}}",
+    "ami_prefix": "{{env `AMI_PREFIX`}}",
+    "ami_source_id": "{{env `AMI_SOURCE_ID`}}",
+    "app_version": "{{env `APP_VERSION`}}",
+    "aws_access_key_id": "{{env `AWS_ACCESS_KEY_ID`}}",
+    "aws_instance_type": "{{env `AWS_INSTANCE_TYPE`}}",
+    "aws_region": "{{env `AWS_REGION`}}",
+    "aws_secret_access_key": "{{env `AWS_SECRET_ACCESS_KEY`}}",
+    "aws_tag_ami_sources": "{{env `AWS_TAG_AMI_SOURCES`}}",
+    "aws_tag_build_git_info": "{{env `AWS_TAG_BUILD_GIT_INFO`}}",
+    "aws_tag_build_git_ref": "{{env `AWS_TAG_BUILD_GIT_REF`}}",
+    "aws_tag_os_info": "{{env `AWS_TAG_OS_INFO`}}",
+    "build_time": "{{env `BUILD_TIME`}}",
+    "eurostar_release_version": "{{env `EUROSTAR_RELEASE_VERSION`}}",
+    "eurostar_service_name": "{{env `EUROSTAR_SERVICE_NAME`}}",
+    "eurostar_service_role": "{{env `EUROSTAR_SERVICE_ROLE`}}",
+    "metrics_remote_host": "{{env `METRICS_REMOTE_HOST`}}",
+    "metrics_remote_port": "{{env `METRICS_REMOTE_PORT`}}",
+    "puppet_dir": "{{env `PUPPET_DIR`}}",
+    "puppet_environment": "{{env `PUPPET_ENVIRONMENT`}}",
+    "puppet_product": "{{env `PUPPET_PRODUCT`}}",
+    "puppet_role": "{{env `PUPPET_ROLE`}}",
+    "puppet_service": "{{env `PUPPET_SERVICE`}}",
+    "ssh_keypair_name": "{{env `SSH_KEYPAIR_NAME`}}",
+    "ssh_private_key_file": "{{env `SSH_PRIVATE_KEY_FILE`}}",
+    "ssh_username": "{{env `SSH_USERNAME`}}"
+  },
+
+  "builders": [
+    {
+      "type": "amazon-ebs",
+      "access_key": "{{user `aws_access_key_id`}}",
+      "ami_description": "{{user `ami_description`}}",
+      "ami_name": "{{user `ami_name`}}",
+      "force_deregister": "true",
+      "instance_type": "{{user `aws_instance_type`}}",
+      "launch_block_device_mappings": [{
+        "device_name": "/dev/sda1",
+        "delete_on_termination": true,
+        "volume_size": "8"
+      }],
+      "region": "{{user `aws_region`}}",
+      "secret_key": "{{user `aws_secret_access_key`}}",
+      "source_ami": "{{user `ami_source_id`}}",
+      "ssh_keypair_name": "{{user `ssh_keypair_name`}}",
+      "ssh_private_key_file": "{{user `ssh_private_key_file`}}",
+      "ssh_pty" : "true",
+      "ssh_username": "{{user `ssh_username`}}",
+      "tags": {
+        "ami_sources": "{{user `aws_tag_ami_sources`}}",
+        "build_git_info": "{{user `aws_tag_build_git_info`}}",
+        "build_git_ref": "{{user `aws_tag_build_git_ref`}}",
+        "build_time": "{{user `build_time`}}",
+        "channel": "dev",
+        "os_info": "{{user `aws_tag_os_info`}}"
+      }
+    }
+  ],
+
+  "provisioners": [
+    {
+      "type": "shell",
+      "inline": [
+        "# THINGS TO DO FIRST OF ALL: create tmp dirs on remote; install puppet",
+        "mkdir /tmp/{uploads,scripts}",
+        "sudo rpm -ivh https://yum.puppetlabs.com/el/6/products/x86_64/puppetlabs-release-6-7.noarch.rpm",
+        "sudo yum install -y 'puppet-3.8.7' rubygem-deep_merge python-setuptools"
+      ]
+    },
+    {
+      "type": "file",
+      "source": "packer_includes/product/uploads",
+      "destination": "/tmp"
+    },
+    {
+      "type": "file",
+      "source": "packer_includes/product/scripts",
+      "destination": "/tmp"
+    },
+    {
+      "type": "file",
+      "source": "uploads",
+      "destination": "/tmp"
+    },
+    {
+      "type": "file",
+      "source": "scripts",
+      "destination": "/tmp"
+    },
+    {
+      "type": "file",
+      "source": "packer_includes/microservice_puppet/uploads",
+      "destination": "/tmp"
+    },
+    {
+      "type": "file",
+      "source": "packer_includes/microservice_puppet/scripts",
+      "destination": "/tmp"
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "sudo rm -rf /etc/puppet",
+        "sudo cp -a /tmp/uploads/puppet /etc/puppet"
+      ]
+    },
+    {
+      "type": "puppet-masterless",
+      "execute_command": "cd {{.WorkingDir}} && {{.FacterVars}} FACTER_operatingsystemmajrelease='6' sudo -E puppet apply --verbose --debug --detailed-exitcodes --parser=future -e \"hiera_include('classes')\" --environment={{user `puppet_environment`}} --hiera_config=/etc/puppet/hiera.yaml --modulepath='$confdir/environments/$environment/roles:$confdir/environments/$environment/modules:$confdir/environments/common/roles:$confdir/environments/common/modules:$confdir/modules'",
+      "facter": {
+        "access_key": "{{user `aws_access_key`}}",
+        "app_version": "{{user `app_version`}}",
+        "base_domain": "{{user `base_domain`}}",
+        "env": "{{user `puppet_environment`}}",
+        "environment": "{{user `puppet_environment`}}",
+        "is_production": "false",
+        "product": "{{user `puppet_product`}}",
+        "role": "{{user `puppet_role`}}",
+        "secret_key": "{{user `aws_secret_key`}}",
+        "service": "{{user `puppet_service`}}"
+      },
+      "manifest_file": "packer_includes/microservice_puppet/uploads/default.pp",
+      "staging_directory": "/tmp/uploads/puppet",
+      "working_directory": "/etc/puppet",
+      "prevent_sudo": "false"
+    },
+    {
+      "type": "shell",
+      "script": "packer_includes/scripts/run_scripts.sh",
+      "environment_vars": [
+        "AWS_ACCESS_KEY_ID={{user `aws_access_key_id`}}",
+        "AWS_SECRET_ACCESS_KEY={{user `aws_secret_access_key`}}",
+        "EUROSTAR_SERVICE_NAME={{user `eurostar_service_name`}}",
+        "EUROSTAR_SERVICE_ROLE={{user `eurostar_service_role`}}",
+        "EUROSTAR_RELEASE_VERSION={{user `eurostar_release_version`}}",
+        "METRICS_REMOTE_HOST={{user `metrics_remote_host`}}",
+        "METRICS_REMOTE_PORT={{user `metrics_remote_port`}}"
+      ],
+      "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E {{ .Path }}"
+    }
+
+  ],
+
+  "post-processors": []
+}
