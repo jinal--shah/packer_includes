@@ -39,7 +39,10 @@ show_env: ## show me my environment
 .PHONY: mandatory_vars
 mandatory_vars: ## list all vars considered necessary to run build.
 	@echo -e "\033[1;37mMANDATORY ENV VARS\033[0m"
-	@echo -e "\033[36m$(MANDATORY_VARS)\033[0m" | sed -e "s/ /\n/"g
+	@echo -e "$(MANDATORY_VARS)" \
+	| sed -e "s/ /\n/"g          \
+	| sort                       \
+	| awk '{ printf "\033[36m%s\033[0m\n", $$1 }'
 
 .PHONY: print_vars
 print_vars: ## show assigned values and src of all env_vars e.g. file or environment
