@@ -1,4 +1,7 @@
+# vim: ts=4 st=4 sr noet smartindent syntax=make ft=make:
+### ... DEFAULT TARGET: help
 .DEFAULT_GOAL := help
+
 .PHONY: help
 help: ## Run to show available make targets and descriptions
 	@echo -e "\033[1;37mAvailable targets\033[0m"

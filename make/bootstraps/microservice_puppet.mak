@@ -5,6 +5,7 @@ ARTEFACT_TYPE:=microservice_puppet
 # ### MANDATORY_VARS
 # put any custom overrides or additions in current project in mandatory_vars.mak
 CUSTOM_FILE:=mandatory_vars.mak
+include packer_includes/make/mandatory_vars/common.mak
 include packer_includes/make/mandatory_vars/product.mak
 include packer_includes/make/mandatory_vars/microservice_puppet.mak
 include packer_includes/make/custom_file.mak
@@ -41,5 +42,6 @@ include packer_includes/make/custom_file.mak
 
 # ### RECIPES ...
 CUSTOM_FILE:=recipes.mak
+include packer_includes/make/recipes/common.mak
 include packer_includes/make/recipes/microservice_puppet.mak
 include packer_includes/make/custom_file.mak

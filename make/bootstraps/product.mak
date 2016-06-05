@@ -5,6 +5,7 @@ ARTEFACT_TYPE:=product
 # ### MANDATORY_VARS
 # put custom overrides or additions in current project in mandatory_vars.mak
 CUSTOM_FILE:=mandatory_vars.mak
+include packer_includes/make/mandatory_vars/common.mak
 include packer_includes/make/mandatory_vars/product.mak
 include packer_includes/make/custom_file.mak
 
