@@ -46,7 +46,7 @@ sshkeyfile: ## Symlink local sshkey to directory to use in Packer
 	    echo "Found sshkey creating symlink: ~/.ssh/$(SSH_PRIVATE_KEY_FILE)"; \
 	    ln -sf ~/.ssh/$(SSH_PRIVATE_KEY_FILE) ./$(SSH_PRIVATE_KEY_FILE);      \
 	else                                                                      \
-	    echo -e "\033[0;31m[ERROR] Create a copy of sshkey in $(CURDIR)"      \
+	    echo -e "\033[0;31m[ERROR] Create a copy of sshkey in $(CURDIR)";     \
 	    echo -e "(or symlink): e.g ./$(SSH_PRIVATE_KEY_FILE)\e[0m\n";         \
 	    exit 1;                                                               \
 	fi;
@@ -75,4 +75,29 @@ check_includes: ## check we use the desired packer_includes version
 	&& cd packer_includes                                                   \
 	&& [[ $$(git describe --tags) == "$(PIGT)" ]]                           \
 	&& echo "... using version: $(PIGT)"
+
+# Local uncommitted changes to a repo mess up the audit trail
+# as the the commit ref or tag will not represent the state of 
+# the files being used for the build. So we say NO, SIR OR MADAM, NOT TODAY!
+.PHONY: check_for_changes
+check_for_changes: ## check project_dir and packer_includes for uncommitted changes.
+	@echo -e "\033[1;37mChecking for uncommitted changes in $(CURDIR)\033[0m"
+	@if git diff-index --quiet HEAD -- ;                                \
+	then                                                                \
+	    echo "... none found.";                                         \
+	else                                                                \
+	    echo -e "\033[0;31m[ERROR] local changes in $(CURDIR)\033[0m";  \
+	    echo "... Commit them (tag the commit if wanted), then build."; \
+	    exit 1;                                                         \
+	fi;
+	@echo -e "\033[1;37mChecking for uncommitted changes in packer_includes\033[0m"
+	@cd packer_includes                                                      \
+	&& if git diff-index --quiet HEAD -- ;                                   \
+	then                                                                     \
+	    echo "... none found.";                                              \
+	else                                                                     \
+	    echo -e "\033[0;31m[ERROR] local changes in packer_includes\033[0m"; \
+	    echo "... Commit them (tag the commit if wanted), then build.";      \
+	    exit 1;                                                              \
+	fi;
 
