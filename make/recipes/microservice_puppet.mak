@@ -41,12 +41,6 @@ mandatory_vars: ## list all vars considered necessary to run build.
 	@echo -e "\033[1;37mMANDATORY ENV VARS\033[0m"
 	@echo -e "\033[36m$(MANDATORY_VARS)\033[0m" | sed -e "s/ /\n/"g
 
-.PHONY: check_vars
-check_vars: ## checks mandatory vars are in make's env or fails
-	$(foreach A, $(MANDATORY_VARS),                                   \
-	    $(if $(value $A),, $(error You must pass env var $A to make)) \
-	)
-
 .PHONY: print_vars
 print_vars: ## show assigned values and src of all env_vars e.g. file or environment
 	@$(foreach V,                                           \
@@ -56,8 +50,8 @@ print_vars: ## show assigned values and src of all env_vars e.g. file or environ
 	        $(info $V=$($V) ($(value $V)): $(origin $V))    \
 	    )                                                   \
 	)
-	@echo -e "\033[1;37mOUTPUT: VAR=VALUE (value's str or code-snippet): source\033[0m"
-	@echo -e "\033[1;37mRun 'make -r --print-data-base' for even more debug info.\033[0m"
+	@echo -e "\033[1;37mOUTPUT: VAR=VALUE (value or code-snippet): source\033[0m"
+	@echo -e "\033[1;37mRun 'make -r --print-data-base' for more debug.\033[0m"
 
 # ... PREREQS TARGETS
 
@@ -81,21 +75,29 @@ PUPGR=$(PUPPET_REPO)
 PUPGT=$(PUPPET_GIT_TAG)
 .PHONY: get_puppet
 get_puppet: ## fetch puppet modules and run puppet librarian
-	@if [[ ! -e $(PUPDIR) ]]; then                                   \
-	    echo -e "\033[1;37$(PUPDIR) doesn't exist - cloning.\033[0m" \
-	    && git clone --branch $(PUPGB) $(PUPGR) $(PUPDIR)            \
-	    && cd $(PUPDIR)                                              \
-	    && [[ -z "$(PUPGT)" ]]                                       \
-	    || echo -e "\033[1;37checking out tag $(PUPGT)\033[0m"       \
-	    && git checkout $(PUPGT);                                    \
-	else                                                             \
-	    echo -e "\033[1;37... $(PUPDIR) already exists.\033[0m"      \
-	    echo -e "\033[1;37Run 'make clean' to start fresh.\033[0m"   \
+	@if [[ ! -e "$(PUPDIR)" ]]; then                                  \
+	    echo -e "\033[1;37m$(PUPDIR) doesn't exist - cloning.\033[0m"  \
+	    && git clone --branch $(PUPGB) $(PUPGR) $(PUPDIR)             \
+	    && cd $(PUPDIR)                                               \
+	    && [[ -z "$(PUPGT)" ]]                                        \
+	    || echo -e "\033[1;37mchecking out tag $(PUPGT)\033[0m"        \
+	    && git checkout $(PUPGT);                                     \
+	else                                                              \
+	    echo -e "\033[1;37m... $(PUPDIR) already exists.\033[0m"       \
+	    && echo -e "\033[1;37mRun 'make clean' to start fresh.\033[0m"; \
 	fi;
-	@echo "\033[1;37Running librarian-puppet in $(PUPDIR)\033[0m" \
+	@echo -e "\033[1;37mRunning librarian-puppet in $(PUPDIR)\033[0m" \
 	&& cd $(PUPPET_DIR) && librarian-puppet install;
 
 # ... VALIDATION TARGETS
+
+.PHONY: check_vars
+check_vars: ## checks mandatory vars are in make's env or fails
+	@echo -e "\033[1;37mChecking all vars for build are sane\033[0m";
+	$(foreach A, $(MANDATORY_VARS),                                   \
+	    $(if $(value $A),, $(error You must pass env var $A to make)) \
+	)
+	@echo "... build vars are sane. Use 'make show_env' to check for yourself."
 
 .PHONY: valid_packer
 valid_packer: ## run packer validate on packer json

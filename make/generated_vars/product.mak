@@ -2,17 +2,29 @@
 # ... if the including product-role dir contains a custom packer.json
 # .e.g because the default json is unsuitable, it will be used
 # instead of the default
+
+# ... PACKER_JSON
+# - in order of precedence use the first of:
+# 1. project specific 'packer.json' file in the dir in which Make is invoked
+# 2. packer_includes role file (e.g. product-amq.json or microservice_puppet-amq.json)
+# 3. packer_includes default artefact file e.g. product.json or microservice_puppet.json
 CUSTOM_JSON := $(strip $(wildcard packer.json))
+ROLE_JSON_FILE := packer_includes/json/$(ARTEFACT_TYPE)-$(EUROSTAR_SERVICE_ROLE).json
+ROLE_JSON := $(strip $(wildcard $(ROLE_JSON_FILE)))
 ifeq ($(CUSTOM_JSON),)
-	PACKER_JSON=packer_includes/json/product.default.json
+ifeq ($(ROLE_JSON),)
+	PACKER_JSON=packer_includes/json/$(ARTEFACT_TYPE).json
 else
-	PACKER_JSON=packer.json
+	PACKER_JSON=$(ROLE_JSON)
+endif
+else
+	PACKER_JSON=$(CUSTOM_JSON)
 endif
 
 export PACKER_JSON
 
 # BUILD_GIT_*: used to AWS-tag the built AMI, and generate its unique name
-#              so we can trace its providence later.
+#              so we can trace its provenance later.
 #
 # ... to rebuild using same version of tools, we can't trust the git tag
 # but the branch, sha and repo, because git tags are mutable and movable.

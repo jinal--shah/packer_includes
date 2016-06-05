@@ -79,6 +79,16 @@
     },
     {
       "type": "file",
+      "source": "uploads",
+      "destination": "/tmp"
+    },
+    {
+      "type": "file",
+      "source": "scripts",
+      "destination": "/tmp"
+    },
+    {
+      "type": "file",
       "source": "packer_includes/microservice_puppet/uploads",
       "destination": "/tmp"
     },
@@ -88,14 +98,31 @@
       "destination": "/tmp"
     },
     {
-      "type": "file",
-      "source": "uploads",
-      "destination": "/tmp"
+      "type": "shell",
+      "inline": [
+        "sudo rm -rf /etc/puppet",
+        "sudo cp -a /tmp/uploads/puppet /etc/puppet"
+      ]
     },
     {
-      "type": "file",
-      "source": "scripts",
-      "destination": "/tmp"
+      "type": "puppet-masterless",
+      "execute_command": "cd {{.WorkingDir}} && {{.FacterVars}} FACTER_operatingsystemmajrelease='6' sudo -E puppet apply --verbose --debug --detailed-exitcodes --parser=future -e \"hiera_include('classes')\" --environment={{user `puppet_environment`}} --hiera_config=/etc/puppet/hiera.yaml --modulepath='$confdir/environments/$environment/roles:$confdir/environments/$environment/modules:$confdir/environments/common/roles:$confdir/environments/common/modules:$confdir/modules'",
+      "facter": {
+        "build_id": "{{user `build_id`}}",
+        "is_production": "false",
+        "product": "{{user `puppet_product`}}",
+        "environment": "{{user `puppet_environment`}}",
+        "role": "{{user `puppet_role`}}",
+        "base_domain": "{{user `base_domain`}}",
+        "service": "{{user `puppet_service`}}",
+        "env": "{{user `puppet_environment`}}",
+        "access_key": "{{user `aws_access_key`}}",
+        "secret_key": "{{user `aws_secret_key`}}"
+      },
+      "manifest_file": "packer_includes/microservice_puppet/uploads/default.pp",
+      "staging_directory": "/tmp/uploads/puppet",
+      "working_directory": "/etc/uploads/puppet",
+      "prevent_sudo": "false"
     },
     {
       "type": "shell",
@@ -110,27 +137,8 @@
         "METRICS_REMOTE_PORT={{user `metrics_remote_port`}}"
       ],
       "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E {{ .Path }}"
-    },
-    {
-      "type": "puppet-masterless",
-      "execute_command": "chmod +x /tmp/scripts/run_puppet.sh; cd {{ .WorkingDir }} && {{ .FacterVars }} sudo -E /tmp/scripts/run_puppet.sh",
-      "facter": {
-        "build_id": "{{user `build_id`}}",
-        "is_production": "false",
-        "product": "{{user `puppet_product`}}",
-        "environment": "{{user `puppet_environment`}}",
-        "role": "{{user `puppet_role`}}",
-        "base_domain": "{{user `base_domain`}}",
-        "service": "{{user `puppet_service`}}",
-        "env": "{{user `puppet_environment`}}",
-        "access_key": "{{user `aws_access_key`}}",
-        "secret_key": "{{user `aws_secret_key`}}"
-      },
-      "manifest_file": "{{pwd}}/default.pp",
-      "staging_directory": "/tmp/puppet",
-      "working_directory": "/etc/puppet",
-      "prevent_sudo": "false"
     }
+
   ],
 
   "post-processors": []

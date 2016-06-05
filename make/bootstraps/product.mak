@@ -1,5 +1,7 @@
 # vim: ts=4 st=4 sr noet smartindent syntax=make ft=make:
 #
+ARTEFACT_TYPE=product
+
 # ### MANDATORY_VARS
 # put custom overrides or additions in current project in mandatory_vars.mak
 CUSTOM_FILE=mandatory_vars.mak

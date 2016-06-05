@@ -101,7 +101,7 @@ the command to execute it.
 
 ## 6. Create your packer.json
 
-The product.default.json file might be enough ...
+The product.json file might be enough ...
 
 If not, create your own called packer.json in  api\_gateway/packer/proxy/
 
