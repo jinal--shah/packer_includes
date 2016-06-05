@@ -11,5 +11,4 @@ export MANDATORY_VARS+=   \
 	BUILD_GIT_REPO        \
 	BUILD_GIT_SHA         \
 	BUILD_TIME            \
-	PACKER_DIR            \
-	PACKER_INCLUDES_GIT_TAG
+	PACKER_DIR
