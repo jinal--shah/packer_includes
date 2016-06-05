@@ -66,19 +66,21 @@ valid_packer: ## run packer validate on packer json
 	@echo -e "\033[1;37mValidating Packer json: $(PACKER_JSON)\033[0m"
 	@PACKER_LOG=$(PACKER_LOG) packer validate "$(PACKER_JSON)"
 
-PIGT=$(PACKER_INCLUDES_GIT_TAG)
+PIGT:=$(PACKER_INCLUDES_GIT_TAG)
+PIDIR:=$(CURDIR)/packer_includes
 .PHONY: check_includes
 check_includes: ## check we use the desired packer_includes version
-	@[[ -z "$(PIGT)" ]]                                                     \
-	|| echo -e "\033[1;37mChecking packer_includes version: $(PIGT)\033[0m" \
-	&& [[ -d packer_includes ]]                                             \
-	&& cd packer_includes                                                   \
-	&& [[ $$(git describe --tags) == "$(PIGT)" ]]                           \
+	@[[ -z "$(PIGT)" ]]                                              \
+	|| echo -e "\033[1;37mChecking $(PIDIR) version: $(PIGT)\033[0m" \
+	&& [[ -d $(PIDIR) ]]                                             \
+	&& cd $(PIDIR)                                                   \
+	&& [[ $$(git describe --tags) == "$(PIGT)" ]]                    \
 	&& echo "... using version: $(PIGT)"
 
 # Local uncommitted changes to a repo mess up the audit trail
 # as the the commit ref or tag will not represent the state of 
 # the files being used for the build. So we say NO, SIR OR MADAM, NOT TODAY!
+PIDIR:=$(CURDIR)/packer_includes
 .PHONY: check_for_changes
 check_for_changes: ## check project_dir and packer_includes for uncommitted changes.
 	@echo -e "\033[1;37mChecking for uncommitted changes in $(CURDIR)\033[0m"
@@ -90,14 +92,14 @@ check_for_changes: ## check project_dir and packer_includes for uncommitted chan
 	    echo "... Commit them (tag the commit if wanted), then build."; \
 	    exit 1;                                                         \
 	fi;
-	@echo -e "\033[1;37mChecking for uncommitted changes in packer_includes\033[0m"
-	@cd packer_includes                                                      \
-	&& if git diff-index --quiet HEAD -- ;                                   \
-	then                                                                     \
-	    echo "... none found.";                                              \
-	else                                                                     \
-	    echo -e "\033[0;31m[ERROR] local changes in packer_includes\033[0m"; \
-	    echo "... Commit them (tag the commit if wanted), then build.";      \
-	    exit 1;                                                              \
+	@echo -e "\033[1;37mChecking for uncommitted changes in $(PIDIR)\033[0m"
+	@cd $(PIDIR)                                                        \
+	&& if git diff-index --quiet HEAD -- ;                              \
+	then                                                                \
+	    echo "... none found.";                                         \
+	else                                                                \
+	    echo -e "\033[0;31m[ERROR] local changes in $(PIDIR)\033[0m";   \
+	    echo "... Commit them (tag the commit if wanted), then build."; \
+	    exit 1;                                                         \
 	fi;
 
