@@ -40,7 +40,7 @@ ifeq ($(BUILD_GIT_TAG),)
 	    git describe                 \
 	    --contains --all             \
 	    --match [0-9]*.[0-9]*.[0-9]* \
-	    HEAD
+	    HEAD                         \
 	)
 else
 	export EUROSTAR_RELEASE_VERSION:=$(BUILD_GIT_TAG)
