@@ -55,7 +55,10 @@
         "build_git_ref": "{{user `aws_tag_build_git_ref`}}",
         "build_time": "{{user `build_time`}}",
         "channel": "dev",
-        "os_info": "{{user `aws_tag_os_info`}}"
+        "product": "{{user `eurostar_service_name`}}",
+        "role": "{{user `eurostar_service_role`}}",
+        "os_info": "{{user `aws_tag_os_info`}}",
+        "versions": "app<{{user `app_version`}}>release<{{user `eurostar_release_version`}}>"
       }
     }
   ],
@@ -108,6 +111,11 @@
       ]
     },
     {
+      "type": "shell",
+      "script": "packer_includes/microservice_puppet/scripts/before_puppet.sh",
+      "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E {{ .Path }}"
+    },
+    {
       "type": "puppet-masterless",
       "execute_command": "cd {{.WorkingDir}} && {{.FacterVars}} FACTER_operatingsystemmajrelease='6' sudo -E puppet apply --verbose --debug --detailed-exitcodes --parser=future -e \"hiera_include('classes')\" --environment={{user `puppet_environment`}} --hiera_config=/etc/puppet/hiera.yaml --modulepath='$confdir/environments/$environment/roles:$confdir/environments/$environment/modules:$confdir/environments/common/roles:$confdir/environments/common/modules:$confdir/modules'",
       "facter": {
@@ -126,6 +134,11 @@
       "staging_directory": "/tmp/uploads/puppet",
       "working_directory": "/etc/puppet",
       "prevent_sudo": "false"
+    },
+    {
+      "type": "shell",
+      "script": "packer_includes/microservice_puppet/scripts/after_puppet.sh",
+      "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E {{ .Path }}"
     },
     {
       "type": "shell",
