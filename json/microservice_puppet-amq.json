@@ -1,12 +1,9 @@
 {
   "variables": {
-    "activemq_pass": "{{env `ACTIVEMQ_PASS`}}",
-    "activemq_user": "{{env `ACTIVEMQ_USER`}}",
     "ami_description": "{{env `AMI_DESCRIPTION`}}",
     "ami_name": "{{env `AMI_NAME`}}",
     "ami_prefix": "{{env `AMI_PREFIX`}}",
     "ami_source_id": "{{env `AMI_SOURCE_ID`}}",
-    "app_version": "{{env `APP_VERSION`}}",
     "aws_access_key_id": "{{env `AWS_ACCESS_KEY_ID`}}",
     "aws_instance_type": "{{env `AWS_INSTANCE_TYPE`}}",
     "aws_region": "{{env `AWS_REGION`}}",
@@ -16,9 +13,11 @@
     "aws_tag_build_git_ref": "{{env `AWS_TAG_BUILD_GIT_REF`}}",
     "aws_tag_os_info": "{{env `AWS_TAG_OS_INFO`}}",
     "build_time": "{{env `BUILD_TIME`}}",
+    "enable_epel": "{{env `ENABLE_EPEL`}}",
     "eurostar_release_version": "{{env `EUROSTAR_RELEASE_VERSION`}}",
     "eurostar_service_name": "{{env `EUROSTAR_SERVICE_NAME`}}",
     "eurostar_service_role": "{{env `EUROSTAR_SERVICE_ROLE`}}",
+    "keep_puppet": "{{env `KEEP_PUPPET`}}",
     "metrics_remote_host": "{{env `METRICS_REMOTE_HOST`}}",
     "metrics_remote_port": "{{env `METRICS_REMOTE_PORT`}}",
     "puppet_dir": "{{env `PUPPET_DIR`}}",
@@ -60,7 +59,7 @@
         "product": "{{user `eurostar_service_name`}}",
         "role": "{{user `eurostar_service_role`}}",
         "os_info": "{{user `aws_tag_os_info`}}",
-        "versions": "app<{{user `app_version`}}>release<{{user `eurostar_release_version`}}>"
+        "versions": "release<{{user `eurostar_release_version`}}>"
       }
     }
   ],
@@ -115,33 +114,17 @@
     {
       "type": "shell",
       "script": "packer_includes/microservice_puppet/scripts/before_puppet.sh",
+      "environment_vars": [
+        "ENABLE_EPEL={{user `enable_epel`}}"
+      ],
       "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E {{ .Path }}"
-    },
-    {
-      "type": "puppet-masterless",
-      "execute_command": "cd {{.WorkingDir}} && {{.FacterVars}} FACTER_operatingsystemmajrelease='6' sudo -E puppet apply --verbose --debug --detailed-exitcodes --parser=future -e \"hiera_include('classes')\" --environment={{user `puppet_environment`}} --hiera_config=/etc/puppet/hiera.yaml --modulepath='$confdir/environments/$environment/roles:$confdir/environments/$environment/modules:$confdir/environments/common/roles:$confdir/environments/common/modules:$confdir/modules'",
-      "facter": {
-        "access_key": "{{user `aws_access_key`}}",
-        "activemq_pass": "{{user `activemq_pass`}}",
-        "activemq_user": "{{user `activemq_user`}}",
-        "app_version": "{{user `app_version`}}",
-        "base_domain": "{{user `base_domain`}}",
-        "env": "{{user `puppet_environment`}}",
-        "environment": "{{user `puppet_environment`}}",
-        "is_production": "false",
-        "product": "{{user `puppet_product`}}",
-        "role": "{{user `puppet_role`}}",
-        "secret_key": "{{user `aws_secret_key`}}",
-        "service": "{{user `puppet_service`}}"
-      },
-      "manifest_file": "packer_includes/microservice_puppet/uploads/default.pp",
-      "staging_directory": "/tmp/uploads/puppet",
-      "working_directory": "/etc/puppet",
-      "prevent_sudo": "false"
     },
     {
       "type": "shell",
       "script": "packer_includes/microservice_puppet/scripts/after_puppet.sh",
+      "environment_vars": [
+        "KEEP_PUPPET={{user `keep_puppet`}}"
+      ],
       "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E {{ .Path }}"
     },
     {
