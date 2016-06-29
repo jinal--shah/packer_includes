@@ -23,6 +23,30 @@ endif
 
 export PACKER_JSON
 
+# EUROSTAR_RELEASE_VERSION
+# If user has not specified a build version (EUROSTAR_RELEASE_VERSION)
+# set one that is a patch level more than current highest git_tag
+#
+ifeq ($(EUROSTAR_RELEASE_VERSION),)
+	LAST_BUILD_VERSION=$(shell \
+	    git fetch --tags \
+	    && git for-each-ref --sort=-committerdate \
+	        --format=%\(refname:short\) refs/tags | \
+	        grep '^[0-9]*\.[0-9]*\.[0-9*]' | \
+	            awk 'BEGIN {FS="-"; OFS="|"}{print $$NF,$$0}' | \
+	                sort -V -t"|" -k1 | awk -F "|" {'print $$2'} | \
+	                    tail -1 \
+	    || echo "0.0.1" \
+	)
+	MAJOR_MINOR=$(shell echo $(LAST_BUILD_VERSION) | sed -e 's/\.[0-9]\+$$//' )
+	NEW_PATCH_VERSION=$(shell \
+	    echo $$(( \
+	        $$(echo $(LAST_BUILD_VERSION) | sed -e 's/.*\.\([0-9]\+\)$$/\1/') + 1 \
+	    )) \
+	)
+	export EUROSTAR_RELEASE_VERSION=$(MAJOR_MINOR).$(NEW_PATCH_VERSION)
+endif
+
 # BUILD_GIT_*: used to AWS-tag the built AMI, and generate its unique name
 #              so we can trace its provenance later.
 #
@@ -43,9 +67,9 @@ ifeq ($(BUILD_GIT_TAG),)
 	    HEAD                         \
 	)
 else
-	export EUROSTAR_RELEASE_VERSION:=$(BUILD_GIT_TAG)
 	export BUILD_GIT_BRANCH:=detached_head
 endif
+
 export BUILD_GIT_SHA:=$(shell git rev-parse --short=$(GIT_SHA_LEN) --verify HEAD)
 export BUILD_GIT_REPO:=$(shell \
 	git remote show -n origin  \
