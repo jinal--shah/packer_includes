@@ -45,6 +45,7 @@ ifeq ($(EUROSTAR_RELEASE_VERSION),)
 	    )) \
 	)
 	export EUROSTAR_RELEASE_VERSION=$(MAJOR_MINOR).$(NEW_PATCH_VERSION)
+	$(shell git tag -a $(EUROSTAR_RELEASE_VERSION) -m 'packer-generated patch release')
 endif
 
 # BUILD_GIT_*: used to AWS-tag the built AMI, and generate its unique name
