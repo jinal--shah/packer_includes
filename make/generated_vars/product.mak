@@ -3,6 +3,13 @@
 # .e.g because the default json is unsuitable, it will be used
 # instead of the default
 
+ifeq ($(BUILD_URL),)
+	AUDIT_MSG=$(shell git config user.name)@$(HOSTNAME)
+else
+	AUDIT_MSG=$(BUILD_URL)
+endif
+export AUDIT_MSG
+
 # ... PACKER_JSON
 # - in order of precedence use the first of:
 # 1. project specific 'packer.json' file in the dir in which Make is invoked
@@ -23,53 +30,15 @@ endif
 
 export PACKER_JSON
 
-# EUROSTAR_RELEASE_VERSION
-# If user has not specified a build version (EUROSTAR_RELEASE_VERSION)
-# set one that is a patch level more than current highest git_tag
-#
-ifeq ($(EUROSTAR_RELEASE_VERSION),)
-	LAST_BUILD_VERSION=$(shell \
-	    git fetch --tags \
-	    && git for-each-ref --sort=-committerdate \
-	        --format=%\(refname:short\) refs/tags | \
-	        grep '^[0-9]*\.[0-9]*\.[0-9*]' | \
-	            awk 'BEGIN {FS="-"; OFS="|"}{print $$NF,$$0}' | \
-	                sort -V -t"|" -k1 | awk -F "|" {'print $$2'} | \
-	                    tail -1 \
-	    || echo "0.0.1" \
-	)
-	MAJOR_MINOR=$(shell echo $(LAST_BUILD_VERSION) | sed -e 's/\.[0-9]\+$$//' )
-	NEW_PATCH_VERSION=$(shell \
-	    echo $$(( \
-	        $$(echo $(LAST_BUILD_VERSION) | sed -e 's/.*\.\([0-9]\+\)$$/\1/') + 1 \
-	    )) \
-	)
-	export EUROSTAR_RELEASE_VERSION=$(MAJOR_MINOR).$(NEW_PATCH_VERSION)
-	$(shell git tag -a $(EUROSTAR_RELEASE_VERSION) -m 'packer-generated patch release')
-endif
-
+export BUILD_TIME:=$(shell date +%Y%m%d%H%M%S)
 # BUILD_GIT_*: used to AWS-tag the built AMI, and generate its unique name
 #              so we can trace its provenance later.
 #
 # ... to rebuild using same version of tools, we can't trust the git tag
 # but the branch, sha and repo, because git tags are mutable and movable.
 # We expect the version tag to fit the x.y.z semver format
-export BUILD_GIT_TAG:=$(shell \
-	git describe                 \
-	--exact-match HEAD           \
-	--match [0-9]*.[0-9]*.[0-9]* \
-	2>/dev/null                  \
-)
-ifeq ($(BUILD_GIT_TAG),)
-	export BUILD_GIT_BRANCH:=$(shell \
-	    git describe                 \
-	    --contains --all             \
-	    --match [0-9]*.[0-9]*.[0-9]* \
-	    HEAD                         \
-	)
-else
-	export BUILD_GIT_BRANCH:=detached_head
-endif
+export BUILD_GIT_TAG:=$(BUILD_TIME)
+export BUILD_GIT_BRANCH:=$(shell git rev-parse --abbrev-ref HEAD)
 
 export BUILD_GIT_SHA:=$(shell git rev-parse --short=$(GIT_SHA_LEN) --verify HEAD)
 export BUILD_GIT_REPO:=$(shell \
@@ -81,7 +50,12 @@ export BUILD_GIT_ORG:=$(shell            \
 	echo $(BUILD_GIT_REPO)               \
 	| sed -e 's!.*[:/]\([^/]\+\)/.*!\1!' \
 )
-export BUILD_TIME:=$(shell date +%Y%m%d%H%M%S)
+
+
+# EUROSTAR_RELEASE_VERSION
+# This is always set to current build time
+#
+export EUROSTAR_RELEASE_VERSION:=$(BUILD_TIME)
 
 AWS_TAG_SOURCE_OS_INFO:=os<$(AMI_SOURCE_OS)>os_release<$(AMI_SOURCE_OS_RELEASE)>
 AWS_TAG_SOURCE_GIT_INFO:=repo<$(AMI_SOURCE_GIT_REPO)>branch<$(AMI_SOURCE_GIT_BRANCH)>

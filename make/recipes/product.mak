@@ -59,6 +59,6 @@ validate: check_vars sshkeyfile ## Run packer validate using defined variables
 
 # TODO: on successful build, share the AMI with the AWS Prod account?
 .PHONY: build
-build: validate ## run packer validate then build
+build: no_detached_head validate tag_project ## run packer validate then build
 	@PACKER_LOG=$(PACKER_LOG) packer build $(PACKER_DEBUG) "$(PACKER_JSON)"
 

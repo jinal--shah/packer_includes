@@ -5,13 +5,13 @@ clean: ## delete build assets
 	@rm -rf $(PUPPET_DIR)
 
 .PHONY: prereqs
-prereqs: sshkeyfile get_puppet ## set up build env
+prereqs: no_detached_head sshkeyfile get_puppet ## set up build env
 
 .PHONY: validate
 validate: check_vars check_includes check_for_changes valid_packer ## check build env is sane
 
 .PHONY: build
-build: prereqs validate ## run prereqs, validate then build.
+build: prereqs validate tag_project ## run prereqs, validate then build.
 	@PACKER_LOG=$(PACKER_LOG) packer build $(PACKER_DEBUG) "$(PACKER_JSON)"
 
 PUPDIR=$(PUPPET_DIR)
